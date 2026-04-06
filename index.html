@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>RFMaster</title>
+  </head>
+  <body>
+    <!-- 浏览器内竖屏兜底；NW/Cordova 壳层另行锁横屏 -->
+    <div id="landscape-lock" class="landscape-lock" hidden>
+      <p id="landscape-lock-text"></p>
+    </div>
+
+    <div id="viewport" class="viewport">
+      <div id="scaler" class="scaler">
+        <div id="stage" class="stage" aria-label="Design 640×360">
+          <div class="stage-column">
+            <!-- 未连接：全屏连接区 -->
+            <div id="layer-connect" class="layer-connect">
+              <div class="connect-screen">
+                <header class="connect-screen__hero">
+                  <h1 class="connect-screen__title">RFMaster</h1>
+                  <p id="connect-screen__subtitle" class="connect-screen__subtitle"></p>
+                </header>
+
+                <div class="connect-screen__card">
+                  <div id="port-picker">
+                    <div id="port-override-option" class="connect-field connect-field--full" hidden>
+                      <label for="port-override">
+                        <span id="port-override-label"></span>
+                        <input id="port-override" type="text" value="/dev/rfcomm0" />
+                      </label>
+                    </div>
+                    <div id="toolbar-row-main" class="connect-grid">
+                      <div id="rotorflight-version-row" class="connect-field">
+                        <select id="rotorflight-version" class="dropdown-select"></select>
+                      </div>
+                      <div id="portsinput" class="connect-field">
+                        <select id="port" class="dropdown-select">
+                          <option value="loading" id="port-loading-opt">Loading ...</option>
+                        </select>
+                      </div>
+                      <div id="baudselect" class="connect-field">
+                        <select id="baud" class="dropdown-select"></select>
+                      </div>
+                    </div>
+                    <div id="auto-connect-and-baud" class="connect-switches">
+                      <div id="auto-connect-switch">
+                        <label>
+                          <input id="auto-connect" class="auto_connect" type="checkbox" />
+                          <span id="auto-connect-label" class="auto_connect"></span>
+                        </label>
+                      </div>
+                      <div id="show-all-ports-switch">
+                        <label>
+                          <input id="show-all-ports" class="show_all_ports" type="checkbox" />
+                          <span id="show-all-ports-label" class="show_all_ports"></span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="connect-screen__actions">
+                    <div class="connect_controls" id="connectbutton">
+                      <div class="connect_b">
+                        <a href="#" id="btn-connect" class="connect"></a>
+                      </div>
+                      <div id="connect-state" class="connect_state"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 已连接：顶栏仅菜单 + 主区 + 底栏 + 抽屉 -->
+            <div id="layer-app" class="layer-app" hidden>
+              <header class="app-topbar">
+                <button
+                  type="button"
+                  id="btn-menu"
+                  class="app-topbar__menu"
+                  aria-label=""
+                  aria-expanded="false"
+                  aria-controls="side-drawer"
+                ></button>
+              </header>
+
+              <div class="app-shell-inner">
+                <main id="app-main" class="app-main">
+                  <div id="app-main-body" class="app-main-body"></div>
+                </main>
+
+                <nav id="bottom-nav" class="bottom-nav" aria-label="Main">
+                  <button type="button" class="bottom-nav__btn is-active" data-tab="setup"></button>
+                  <button type="button" class="bottom-nav__btn" data-tab="receiver"></button>
+                  <button type="button" class="bottom-nav__btn" data-tab="mixer"></button>
+                  <button type="button" class="bottom-nav__btn" data-tab="motors"></button>
+                  <button type="button" class="bottom-nav__btn" data-tab="gyro"></button>
+                </nav>
+              </div>
+
+              <div id="drawer-backdrop" class="drawer-backdrop" hidden aria-hidden="true"></div>
+              <aside id="side-drawer" class="side-drawer" aria-hidden="true" aria-label="">
+                <div class="side-drawer__header">
+                  <h2 id="side-drawer-title" class="side-drawer__title"></h2>
+                  <button type="button" id="btn-drawer-close" class="side-drawer__close" aria-label=""></button>
+                </div>
+                <div class="side-drawer__body">
+                  <section class="side-drawer__section">
+                    <h3 id="drawer-section-fc-label" class="side-drawer__section-title"></h3>
+                    <p id="fc-summary-text" class="side-drawer__fc-summary"></p>
+                  </section>
+                  <nav class="side-drawer__nav-example" aria-label="">
+                    <a href="#" class="side-drawer__link" id="drawer-link-ex1"></a>
+                    <a href="#" class="side-drawer__link" id="drawer-link-ex2"></a>
+                    <a href="#" class="side-drawer__link" id="drawer-link-ex3"></a>
+                  </nav>
+                  <button type="button" id="btn-disconnect-drawer" class="side-drawer__disconnect"></button>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

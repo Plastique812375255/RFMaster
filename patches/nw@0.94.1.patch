@@ -1,0 +1,12 @@
+diff --git a/src/get.js b/src/get.js
+index 25e754b554d8f64c3bb8cde6a146e8a09b17dd3c..41163c488418d44f542cf30757865ed7e5290556 100644
+--- a/src/get.js
++++ b/src/get.js
+@@ -8,6 +8,7 @@ import node from "./node.js";
+ import nw from "./nw.js";
+ 
+ import util from "./util.js";
++import verify from "./verify.js";
+ 
+ /**
+  * @typedef {object} GetOptions
