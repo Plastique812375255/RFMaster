@@ -7,8 +7,10 @@ export type SerialPortEntry = { path: string; displayName: string };
 
 const DFU_VALUE = 'DFU';
 const MANUAL_VALUE = 'manual';
+/** 对齐 conference serial.connect('virtual') */
+const VIRTUAL_PORT_VALUE = 'virtual';
 
-export { DFU_VALUE, MANUAL_VALUE };
+export { DFU_VALUE, MANUAL_VALUE, VIRTUAL_PORT_VALUE };
 
 function sortPorts(ports: SerialPortEntry[]): SerialPortEntry[] {
   return [...ports].sort((a, b) =>
@@ -32,6 +34,7 @@ export type SerialPortOption = {
   label: string;
   isManual?: boolean;
   isDFU?: boolean;
+  isVirtual?: boolean;
 };
 
 /**
@@ -66,6 +69,8 @@ export async function buildSerialPortData(showAllPorts: boolean): Promise<{
   if (dfuLabel) {
     options.push({ value: DFU_VALUE, label: dfuLabel, isDFU: true });
   }
+
+  options.push({ value: VIRTUAL_PORT_VALUE, label: en.portVirtual, isVirtual: true });
 
   let serialPorts: SerialPortEntry[] = [];
   try {

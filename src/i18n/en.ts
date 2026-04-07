@@ -9,6 +9,8 @@ export const en = {
   connecting: 'Connecting',
   disconnect: 'Disconnect',
   portsSelectManual: 'Manual Selection',
+  portVirtual: 'Virtual FC (simulated)',
+  connectVirtualOnlyHint: 'No USB/Web Serial in this environment — select Virtual FC to try the UI.',
   serialPortLoading: 'Loading ...',
   virtualMSPVersion: 'Virtual Firmware Version',
   portOverrideText: 'Port:',
@@ -48,10 +50,7 @@ export const en = {
   menuOpen: 'Open menu',
   menuTitle: 'Menu',
   drawerClose: 'Close',
-  drawerFcSummaryTitle: 'Flight controller',
-  drawerExampleLink1: 'Example: Preferences',
-  drawerExampleLink2: 'Example: Backup / restore',
-  drawerExampleLink3: 'Example: About',
+  drawerNavAriaLabel: 'Main menu',
 } as const;
 
 export function formatMsg(template: string, ...params: string[]): string {

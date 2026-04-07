@@ -2,16 +2,20 @@ import './style.css';
 import { CONFIGURATOR } from './config/configurator';
 import { configStorageGet, configStorageSet } from './configStorage';
 import { en, formatMsg, stripTags } from './i18n/en';
+import { zh } from './i18n/zh';
 import { ConnectionValidationError, runConnectionValidation } from './msp/connectionValidation';
-import { fcConfig, getHardwareName, resetFcConfig } from './msp/fcState';
+import { FC } from './domain/flightController';
+import { resetFcConfig } from './msp/fcState';
 import { MspProtocol } from './msp/mspProtocol';
-import { MANUAL_VALUE, buildSerialPortData, type SerialPortEntry } from './port/buildSerialPortList';
+import { MANUAL_VALUE, VIRTUAL_PORT_VALUE, buildSerialPortData, type SerialPortEntry } from './port/buildSerialPortList';
 import { isAndroidOs, portRecognized } from './port/portRecognized';
 import { ChromeSerialTransport, isChromeSerialAvailable } from './transport/chromeSerialTransport';
 import type { SerialTransport } from './transport/serialTransport';
+import { VirtualSerialTransport } from './transport/virtualSerialTransport';
 import { WebSerialTransport } from './transport/webSerialTransport';
 import { initFixedStageLayout } from './ui/fixedStageLayout';
 import { fillRotorflightVersionSelect } from './ui/rotorflightVersionLines';
+import { TouchOptionPicker } from './ui/touchOptionPicker';
 
 /** conference/rotorflight-configurator-release-2.2.1/src/js/port_handler.js 首行 TIMEOUT_CHECK */
 const TIMEOUT_CHECK = 500;
@@ -80,10 +84,18 @@ function updateManualPortVisibility(): void {
   const isDFU = opt?.dataset.isDFU === 'true';
 
   const portOverride = document.querySelector<HTMLDivElement>('#port-override-option');
-  const baudSelect = document.querySelector<HTMLSelectElement>('#baud');
+  const baudRow = document.querySelector<HTMLElement>('#baudselect');
+  const rotorRow = document.querySelector<HTMLDivElement>('#rotorflight-version-row');
 
   if (portOverride) portOverride.hidden = !isManual;
-  if (baudSelect) baudSelect.style.display = isDFU || isVirtual ? 'none' : '';
+  if (rotorRow) rotorRow.hidden = !isManual && !isVirtual;
+  if (baudRow) baudRow.style.display = isDFU || isVirtual ? 'none' : '';
+}
+
+function getRotorflightFwDataset(sel: HTMLSelectElement): string {
+  const o = sel.selectedOptions[0];
+  const fw = o?.dataset.fw;
+  return typeof fw === 'string' && fw.length > 0 ? fw : '4.5.0';
 }
 
 async function main(): Promise<void> {
@@ -106,8 +118,23 @@ async function main(): Promise<void> {
   const elBtnConnect = document.querySelector<HTMLAnchorElement>('#btn-connect');
   const elConnectState = document.querySelector<HTMLDivElement>('#connect-state');
   const elPortLoading = document.querySelector<HTMLOptionElement>('#port-loading-opt');
+  const elPortTouchRoot = document.querySelector<HTMLElement>('#port-touch-root');
+  const elBaudTouchRoot = document.querySelector<HTMLElement>('#baud-touch-root');
+  const elRotorTouchRoot = document.querySelector<HTMLElement>('#rotorflight-touch-root');
 
-  if (!elPort || !elBaud || !elAuto || !elShowAll || !elPortOverride || !elRotorflightVersion || !elBtnConnect || !elConnectState) {
+  if (
+    !elPort ||
+    !elBaud ||
+    !elAuto ||
+    !elShowAll ||
+    !elPortOverride ||
+    !elRotorflightVersion ||
+    !elBtnConnect ||
+    !elConnectState ||
+    !elPortTouchRoot ||
+    !elBaudTouchRoot ||
+    !elRotorTouchRoot
+  ) {
     return;
   }
 
@@ -121,18 +148,36 @@ async function main(): Promise<void> {
   if (elDrawerTitle) elDrawerTitle.textContent = en.menuTitle;
   const elBtnDrawerClose = document.querySelector<HTMLButtonElement>('#btn-drawer-close');
   if (elBtnDrawerClose) elBtnDrawerClose.setAttribute('aria-label', en.drawerClose);
-  const elDrawerSectionFc = document.querySelector<HTMLHeadingElement>('#drawer-section-fc-label');
-  if (elDrawerSectionFc) elDrawerSectionFc.textContent = en.drawerFcSummaryTitle;
   const elSideDrawer = document.querySelector<HTMLElement>('#side-drawer');
   if (elSideDrawer) elSideDrawer.setAttribute('aria-label', en.menuTitle);
-  const elDrawerEx1 = document.querySelector<HTMLAnchorElement>('#drawer-link-ex1');
-  const elDrawerEx2 = document.querySelector<HTMLAnchorElement>('#drawer-link-ex2');
-  const elDrawerEx3 = document.querySelector<HTMLAnchorElement>('#drawer-link-ex3');
-  if (elDrawerEx1) elDrawerEx1.textContent = en.drawerExampleLink1;
-  if (elDrawerEx2) elDrawerEx2.textContent = en.drawerExampleLink2;
-  if (elDrawerEx3) elDrawerEx3.textContent = en.drawerExampleLink3;
-  const elBtnDisc = document.querySelector<HTMLButtonElement>('#btn-disconnect-drawer');
-  if (elBtnDisc) elBtnDisc.textContent = en.disconnect;
+  const elDrawerMenu = document.querySelector<HTMLElement>('#side-drawer-menu');
+  if (elDrawerMenu) elDrawerMenu.setAttribute('aria-label', en.drawerNavAriaLabel);
+  const drawerMenuLabelPairs: Array<[string, string]> = [
+    ['drawer-menu-heli', zh.menuHelicopterSetup],
+    ['drawer-menu-feel', zh.menuFeelSettings],
+    ['drawer-menu-flight-params', zh.menuFlightParamsSettings],
+    ['drawer-menu-label-rfc', zh.menuRfcLegacy],
+    ['drawer-menu-rfc-setup', zh.rfcSetup],
+    ['drawer-menu-rfc-config', zh.rfcConfig],
+    ['drawer-menu-rfc-receiver', zh.rfcReceiver],
+    ['drawer-menu-rfc-failsafe', zh.rfcFailsafe],
+    ['drawer-menu-rfc-power', zh.rfcPower],
+    ['drawer-menu-rfc-motors', zh.rfcMotors],
+    ['drawer-menu-rfc-governor', zh.rfcGovernor],
+    ['drawer-menu-rfc-servo', zh.rfcServo],
+    ['drawer-menu-rfc-mixer', zh.rfcMixerType],
+    ['drawer-menu-rfc-gyro', zh.rfcGyro],
+    ['drawer-menu-rfc-rates', zh.rfcRates],
+    ['drawer-menu-rfc-flight-params-inner', zh.rfcFlightParams],
+    ['drawer-menu-rfc-modes', zh.rfcModes],
+    ['drawer-menu-rfc-adjust', zh.rfcAdjust],
+    ['drawer-menu-rfc-sensors', zh.rfcSensors],
+    ['drawer-menu-rfc-blackbox', zh.rfcBlackbox],
+  ];
+  for (const [id, label] of drawerMenuLabelPairs) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = label;
+  }
 
   document.querySelector<HTMLSpanElement>('#port-override-label')!.textContent = en.portOverrideText;
   document.querySelector<HTMLSpanElement>('#auto-connect-label')!.textContent = en.autoConnect;
@@ -215,19 +260,6 @@ async function main(): Promise<void> {
 
   let activeTabId = 'setup';
 
-  function updateFcSummary(): void {
-    const el = document.querySelector<HTMLSpanElement>('#fc-summary-text');
-    if (!el) return;
-    if (!connected) {
-      el.textContent = '';
-      return;
-    }
-    const id = fcConfig.flightControllerIdentifier || '—';
-    const fw = fcConfig.buildVersion || fcConfig.flightControllerVersion || '—';
-    const board = getHardwareName() || '—';
-    el.textContent = `${id} ${fw} · ${board}`;
-  }
-
   function renderAppTab(): void {
     const body = document.querySelector<HTMLDivElement>('#app-main-body');
     if (!body) return;
@@ -273,13 +305,10 @@ async function main(): Promise<void> {
   function applyShellVisibility(show: boolean): void {
     const layerConnect = document.querySelector<HTMLElement>('#layer-connect');
     const layerApp = document.querySelector<HTMLElement>('#layer-app');
-    const summary = document.querySelector<HTMLSpanElement>('#fc-summary-text');
     if (layerConnect) layerConnect.hidden = show;
     if (layerApp) layerApp.hidden = !show;
-    if (!show && summary) summary.textContent = '';
     if (show) {
       setDrawerOpen(false);
-      updateFcSummary();
       renderAppTab();
     }
   }
@@ -292,6 +321,18 @@ async function main(): Promise<void> {
   let serialPathsSnapshot = new Set<string>();
   let portPickerSeeded = false;
 
+  let syncTouchPickersDisabled: () => void = () => {};
+
+  const portPicker = new TouchOptionPicker({ select: elPort, mount: elPortTouchRoot });
+  const baudPicker = new TouchOptionPicker({ select: elBaud, mount: elBaudTouchRoot });
+  const rotorPicker = new TouchOptionPicker({ select: elRotorflightVersion, mount: elRotorTouchRoot });
+
+  syncTouchPickersDisabled = () => {
+    portPicker.syncDisabledFromSelect();
+    baudPicker.syncDisabledFromSelect();
+    rotorPicker.syncDisabledFromSelect();
+  };
+
   function applyAutoConnectBaudLock(): void {
     if (autoConnect) {
       elBaud.value = '115200';
@@ -299,6 +340,8 @@ async function main(): Promise<void> {
     } else if (!connected) {
       elBaud.disabled = false;
     }
+    baudPicker.syncDisplayFromSelect();
+    syncTouchPickersDisabled();
   }
   applyAutoConnectBaudLock();
 
@@ -352,7 +395,11 @@ async function main(): Promise<void> {
   function setDisconnectedUi(): void {
     connected = false;
     CONFIGURATOR.connectionValid = false;
+    CONFIGURATOR.virtualMode = false;
+    CONFIGURATOR.virtualApiVersion = '';
+    CONFIGURATOR.virtualFwVersion = '';
     resetFcConfig();
+    FC.resetState();
     elPort.disabled = false;
     elBaud.disabled = autoConnect ? true : false;
     elAuto.disabled = false;
@@ -374,6 +421,7 @@ async function main(): Promise<void> {
     elRotorflightVersion.disabled = true;
     elPortOverride.disabled = true;
     setConnectButtonConnecting();
+    syncTouchPickersDisabled();
   }
 
   function setConnectedUi(): void {
@@ -387,6 +435,7 @@ async function main(): Promise<void> {
     elRotorflightVersion.disabled = true;
     elPortOverride.disabled = true;
     setConnectButtonConnected();
+    syncTouchPickersDisabled();
     updateManualPortVisibility();
     activeTabId = 'setup';
     document.querySelectorAll('#bottom-nav .bottom-nav__btn').forEach((b) => {
@@ -438,15 +487,11 @@ async function main(): Promise<void> {
 
     const webSig = await webPortsSignature();
 
-    let data: Awaited<ReturnType<typeof buildSerialPortData>> | null = null;
-    if (chromeSerialAvailable) {
-      data = await buildSerialPortData(showAllPorts);
-    }
-
-    const chromePaths = data ? data.serialEntries.map((e) => e.path) : [];
+    const data = await buildSerialPortData(showAllPorts);
+    const chromePaths = data.serialEntries.map((e) => e.path);
     const fingerprint = JSON.stringify({
       serial: [...chromePaths].sort(),
-      dfu: data?.hasDfu ?? false,
+      dfu: data.hasDfu,
       web: webSig,
       showAll: showAllPorts,
     });
@@ -458,19 +503,16 @@ async function main(): Promise<void> {
 
     const keep = elPort.value;
 
-    if (chromeSerialAvailable && data) {
-      elPort.innerHTML = '';
-      for (const o of data.options) {
-        const opt = document.createElement('option');
-        opt.value = o.value;
-        opt.textContent = o.label;
-        if (o.isManual) opt.dataset.isManual = 'true';
-        if (o.isDFU) opt.dataset.isDFU = 'true';
-        opt.dataset.serialSource = 'chrome';
-        elPort.appendChild(opt);
-      }
-    } else {
-      elPort.innerHTML = '';
+    elPort.innerHTML = '';
+    for (const o of data.options) {
+      const opt = document.createElement('option');
+      opt.value = o.value;
+      opt.textContent = o.label;
+      if (o.isManual) opt.dataset.isManual = 'true';
+      if (o.isDFU) opt.dataset.isDFU = 'true';
+      if (o.isVirtual) opt.dataset.isVirtual = 'true';
+      opt.dataset.serialSource = 'chrome';
+      elPort.appendChild(opt);
     }
 
     if (webSerialAvailable) {
@@ -512,13 +554,9 @@ async function main(): Promise<void> {
       }
     }
 
-    if (!chromeSerialAvailable && !webSerialAvailable) {
-      return;
-    }
-
     const currentSet = new Set(chromePaths);
 
-    if (chromeSerialAvailable && data) {
+    if (chromeSerialAvailable) {
       if (!portPickerSeeded) {
         portPickerSeeded = true;
         selectFirstRecognizedPort(data.serialEntries);
@@ -528,6 +566,7 @@ async function main(): Promise<void> {
         }
         serialPathsSnapshot = currentSet;
         updateManualPortVisibility();
+        portPicker.refreshFromSelect();
         return;
       }
 
@@ -545,6 +584,7 @@ async function main(): Promise<void> {
     }
 
     updateManualPortVisibility();
+    portPicker.refreshFromSelect();
   }
 
   function stopPortCheckChain(): void {
@@ -594,13 +634,17 @@ async function main(): Promise<void> {
     document.getElementById('btn-menu')?.addEventListener('click', () => setDrawerOpen(true));
     document.getElementById('btn-drawer-close')?.addEventListener('click', () => setDrawerOpen(false));
     document.getElementById('drawer-backdrop')?.addEventListener('click', () => setDrawerOpen(false));
-    document.getElementById('btn-disconnect-drawer')?.addEventListener('click', () => {
-      void performDisconnect();
-      setDrawerOpen(false);
+    const sideMenu = document.getElementById('side-drawer-menu');
+    sideMenu?.querySelectorAll<HTMLButtonElement>('.side-menu__row--parent').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const subId = btn.getAttribute('aria-controls');
+        const sub = subId ? document.getElementById(subId) : null;
+        if (!sub) return;
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        sub.hidden = open;
+      });
     });
-    for (const id of ['drawer-link-ex1', 'drawer-link-ex2', 'drawer-link-ex3'] as const) {
-      document.getElementById(id)?.addEventListener('click', (e) => e.preventDefault());
-    }
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') setDrawerOpen(false);
     });
@@ -617,6 +661,7 @@ async function main(): Promise<void> {
   async function connectChromeSerial(): Promise<void> {
     const opt = elPort.selectedOptions[0];
     if (opt?.dataset.isDFU === 'true') return;
+    if (opt?.dataset.isVirtual === 'true' || elPort.value === VIRTUAL_PORT_VALUE) return;
 
     let portName: string;
     if (opt?.dataset.isManual === 'true') {
@@ -639,6 +684,35 @@ async function main(): Promise<void> {
       await c.connect(portName, parseInt(elBaud.value, 10));
       await runAfterOpen(portName);
       await configStorageSet({ last_used_port: portName });
+      setConnectedUi();
+    } catch (e) {
+      if (e instanceof ConnectionValidationError) {
+        window.alert(stripTags(e.message));
+      } else {
+        window.alert(e instanceof Error ? e.message : String(e));
+      }
+      await teardownTransport();
+      setDisconnectedUi();
+    } finally {
+      connecting = false;
+    }
+  }
+
+  async function connectVirtual(): Promise<void> {
+    setConnectingUi();
+    const vt = new VirtualSerialTransport(() => ({
+      apiVersion: elRotorflightVersion.value,
+      fwVersion: getRotorflightFwDataset(elRotorflightVersion),
+    }));
+    transport = vt;
+    msp = new MspProtocol();
+    vt.setOnReceive((data) => msp?.feed({ data }));
+    try {
+      CONFIGURATOR.virtualMode = true;
+      CONFIGURATOR.virtualApiVersion = elRotorflightVersion.value;
+      CONFIGURATOR.virtualFwVersion = getRotorflightFwDataset(elRotorflightVersion);
+      await runAfterOpen('virtual');
+      await configStorageSet({ last_used_port: VIRTUAL_PORT_VALUE });
       setConnectedUi();
     } catch (e) {
       if (e instanceof ConnectionValidationError) {
@@ -720,6 +794,13 @@ async function main(): Promise<void> {
 
     stopPortCheckChain();
     const sel = elPort.selectedOptions[0];
+    const isVirtual = elPort.value === VIRTUAL_PORT_VALUE || sel?.dataset.isVirtual === 'true';
+    if (isVirtual) {
+      void connectVirtual().finally(() => {
+        if (!connected) startPortCheckChain();
+      });
+      return;
+    }
     const useWebTransport =
       elPort.value === REQUEST_NEW_WEB ||
       elPort.value.startsWith('__web__') ||
@@ -730,15 +811,11 @@ async function main(): Promise<void> {
     });
   });
 
-  if (!chromeSerialAvailable && !webSerialAvailable) {
-    elPort.disabled = true;
-    elBtnConnect.style.pointerEvents = 'none';
-    elConnectState.textContent = 'No serial API';
-    return;
-  }
-
   await refreshPorts();
   updateManualPortVisibility();
+  if (!chromeSerialAvailable && !webSerialAvailable) {
+    elConnectState.textContent = en.connectVirtualOnlyHint;
+  }
   startPortCheckChain();
 
   if (autoConnect && chromeSerialAvailable) {

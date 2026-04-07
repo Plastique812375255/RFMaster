@@ -1,5 +1,8 @@
 import semver from 'semver';
 import { CONFIGURATOR } from '../config/configurator';
+import { FC } from '../domain/flightController';
+import { syncFcConfigFromMsp } from '../domain/fcMspSync';
+import { applyVirtualFcOverlay, type FcOverlayTarget } from '../domain/virtualFcOverlay';
 import { en, formatMsg, stripTags } from '../i18n/en';
 import { fcConfig, getHardwareName, resetFcConfig } from './fcState';
 import { MSPCodes } from './mspCodes';
@@ -63,4 +66,13 @@ export async function runConnectionValidation(
 
   await mspPromise(msp, send, MSPCodes.MSP_BOARD_INFO, null);
   console.log(formatMsg(en.boardInfoReceived, getHardwareName(), String(fcConfig.boardVersion)));
+
+  FC.resetState();
+  syncFcConfigFromMsp(FC);
+  if (CONFIGURATOR.virtualMode) {
+    applyVirtualFcOverlay(FC as FcOverlayTarget, {
+      virtualApiVersion: CONFIGURATOR.virtualApiVersion || fcConfig.apiVersion,
+      fwVersion: CONFIGURATOR.virtualFwVersion || fcConfig.flightControllerVersion,
+    });
+  }
 }

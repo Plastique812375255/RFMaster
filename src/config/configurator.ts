@@ -15,4 +15,8 @@ export const CONFIGURATOR = {
   version: '0.0.1',
   connectionValid: false,
   virtualMode: false,
+  /** 虚拟连接时下拉选中的 MSP API 版本（如 12.8.0） */
+  virtualApiVersion: '',
+  /** 虚拟连接时下拉对应的固件版本字符串（如 4.5.0） */
+  virtualFwVersion: '',
 };

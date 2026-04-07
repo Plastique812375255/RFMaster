@@ -33,15 +33,18 @@
                     </div>
                     <div id="toolbar-row-main" class="connect-grid">
                       <div id="rotorflight-version-row" class="connect-field">
-                        <select id="rotorflight-version" class="dropdown-select"></select>
+                        <select id="rotorflight-version" class="connect-select-native" hidden aria-hidden="true"></select>
+                        <div id="rotorflight-touch-root"></div>
                       </div>
                       <div id="portsinput" class="connect-field">
-                        <select id="port" class="dropdown-select">
+                        <select id="port" class="connect-select-native">
                           <option value="loading" id="port-loading-opt">Loading ...</option>
                         </select>
+                        <div id="port-touch-root"></div>
                       </div>
                       <div id="baudselect" class="connect-field">
-                        <select id="baud" class="dropdown-select"></select>
+                        <select id="baud" class="connect-select-native" hidden aria-hidden="true"></select>
+                        <div id="baud-touch-root"></div>
                       </div>
                     </div>
                     <div id="auto-connect-and-baud" class="connect-switches">
@@ -106,16 +109,46 @@
                   <button type="button" id="btn-drawer-close" class="side-drawer__close" aria-label=""></button>
                 </div>
                 <div class="side-drawer__body">
-                  <section class="side-drawer__section">
-                    <h3 id="drawer-section-fc-label" class="side-drawer__section-title"></h3>
-                    <p id="fc-summary-text" class="side-drawer__fc-summary"></p>
-                  </section>
-                  <nav class="side-drawer__nav-example" aria-label="">
-                    <a href="#" class="side-drawer__link" id="drawer-link-ex1"></a>
-                    <a href="#" class="side-drawer__link" id="drawer-link-ex2"></a>
-                    <a href="#" class="side-drawer__link" id="drawer-link-ex3"></a>
+                  <nav
+                    id="side-drawer-menu"
+                    class="side-menu"
+                    aria-label=""
+                  >
+                    <button type="button" class="side-menu__row" id="drawer-menu-heli"></button>
+                    <button type="button" class="side-menu__row" id="drawer-menu-feel"></button>
+                    <button type="button" class="side-menu__row" id="drawer-menu-flight-params"></button>
+
+                    <div class="side-menu__group">
+                      <button
+                        type="button"
+                        class="side-menu__row side-menu__row--parent"
+                        id="drawer-menu-group-rfc"
+                        aria-expanded="false"
+                        aria-controls="drawer-submenu-rfc"
+                      >
+                        <span class="side-menu__label" id="drawer-menu-label-rfc"></span>
+                        <span class="side-menu__chev" aria-hidden="true"></span>
+                      </button>
+                      <div id="drawer-submenu-rfc" class="side-menu__sub" hidden>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-setup"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-config"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-receiver"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-failsafe"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-power"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-motors"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-governor"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-servo"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-mixer"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-gyro"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-rates"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-flight-params-inner"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-modes"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-adjust"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-sensors"></button>
+                        <button type="button" class="side-menu__row side-menu__row--child" id="drawer-menu-rfc-blackbox"></button>
+                      </div>
+                    </div>
                   </nav>
-                  <button type="button" id="btn-disconnect-drawer" class="side-drawer__disconnect"></button>
                 </div>
               </aside>
             </div>

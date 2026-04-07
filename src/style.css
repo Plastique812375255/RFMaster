@@ -14,8 +14,10 @@
   --touch-min: 44px;
   --radius-sm: 4px;
   --radius-md: 8px;
-  --drawer-width: 200px;
+  --drawer-width: 220px;
   --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /** TouchOptionPicker 触发器：设计稿 px（随 #stage 的 transform scale 视觉缩放） */
+  --top-picker-font-size: 12px;
 }
 
 *,
@@ -153,6 +155,7 @@ body {
 
 .connect-field {
   min-width: 0;
+  position: relative;
 }
 
 .connect-field--full {
@@ -210,21 +213,28 @@ body {
   color: var(--color-text);
 }
 
-#rotorflight-version {
+#rotorflight-version-row,
+#portsinput,
+#baudselect {
   width: 100%;
   min-width: 0;
 }
 
-.dropdown-select {
-  min-height: 32px;
-  width: 100%;
-  min-width: 0;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+/** 保留原生 select 作数据与 dataset 源，仅屏幕外隐藏（供 TouchOptionPicker 同步） */
+.connect-select-native[hidden] {
+  display: none !important;
+}
+
+.connect-select-native:not([hidden]) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 #port-override {
@@ -437,65 +447,102 @@ input.show_all_ports {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 16px 14px 20px;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0;
 }
 
-.side-drawer__section-title {
-  margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
-}
-
-.side-drawer__fc-summary {
+/* 侧栏：仅列表项，无外框；每行横向铺满抽屉内容区 */
+.side-menu {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #cbd5e1;
-  word-break: break-word;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
 }
 
-.side-drawer__nav-example {
+.side-menu__group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
 
-.side-drawer__link {
-  display: block;
-  padding: 12px 12px;
+.side-menu__row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px 14px;
   font-size: 15px;
-  color: var(--color-accent-muted);
-  text-decoration: none;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-}
-
-.side-drawer__link:hover {
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.25);
-}
-
-.side-drawer__disconnect {
-  margin-top: auto;
-  min-height: var(--touch-min);
-  padding: 12px 16px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #fecaca;
-  background: rgba(127, 29, 29, 0.35);
-  border: 1px solid rgba(248, 113, 113, 0.35);
-  border-radius: var(--radius-md);
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: left;
+  color: #e2e8f0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.side-drawer__disconnect:hover {
-  background: rgba(127, 29, 29, 0.5);
+.side-menu__row:hover {
+  background: rgba(59, 130, 246, 0.14);
+}
+
+.side-menu__row:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.65);
+  outline-offset: -2px;
+}
+
+.side-menu__row--parent {
+  justify-content: space-between;
+}
+
+.side-menu__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.side-menu__chev {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  margin-left: 4px;
+  border-right: 2px solid #94a3b8;
+  border-bottom: 2px solid #94a3b8;
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+}
+
+.side-menu__row--parent[aria-expanded='true'] .side-menu__chev {
+  transform: rotate(45deg);
+  margin-top: 2px;
+}
+
+.side-menu__sub {
+  display: flex;
+  flex-direction: column;
+}
+
+.side-menu__sub[hidden] {
+  display: none !important;
+}
+
+.side-menu__row--child {
+  padding-left: 28px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #cbd5e1;
+}
+
+.side-menu__row--child:hover {
+  color: #f1f5f9;
 }
 
 /* 竖屏遮罩（H5 兜底） */
